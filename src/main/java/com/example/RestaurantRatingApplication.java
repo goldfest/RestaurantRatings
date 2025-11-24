@@ -1,10 +1,9 @@
 package com.example;
 
+import com.example.dto.Visitor.VisitorRequestDTO;
+
+import com.example.dto.Restaurant.RestaurantRequestDTO;
 import com.example.entity.CuisineType;
-import com.example.entity.Restaurant;
-import com.example.entity.Review;
-import com.example.entity.Visitor;
-import com.example.entity.*;
 import com.example.service.RestaurantService;
 import com.example.service.ReviewService;
 import com.example.service.VisitorService;
@@ -19,71 +18,56 @@ import java.math.BigDecimal;
 @SpringBootApplication
 @RequiredArgsConstructor
 public class RestaurantRatingApplication {
-    private final VisitorService visitorService;
-    private final RestaurantService restaurantService;
-    private final ReviewService reviewService;
 
     public static void main(String[] args) {
         SpringApplication.run(RestaurantRatingApplication.class, args);
     }
 
     @Bean
-    public CommandLineRunner testApplication() {
+    public CommandLineRunner testApplication(
+            VisitorService visitorService,
+            RestaurantService restaurantService,
+            ReviewService reviewService) {
+
         return args -> {
-            Visitor visitor1 = new Visitor(null, "Ivan", 25, "Man");
-            Visitor visitor2 = new Visitor(null, "Stepan", 30, "Woman");
-            Visitor visitor3 = new Visitor(null, null, 28, "Man"); //анонимный отзыв
+            // Создание посетителей через DTO
+            VisitorRequestDTO visitor1 = new VisitorRequestDTO("Ivan", 25, "Man");
+            VisitorRequestDTO visitor2 = new VisitorRequestDTO("Stepan", 30, "Woman");
+            VisitorRequestDTO visitor3 = new VisitorRequestDTO("Anonymous", 28, "Man");
 
             visitorService.save(visitor1);
             visitorService.save(visitor2);
             visitorService.save(visitor3);
 
-            // Создание ресторанов
-            Restaurant restaurant1 = new Restaurant(null, "Italiano pastanello",
-                    "italian kukaracha", CuisineType.ITALIAN,
-                    new BigDecimal("1500.00"), BigDecimal.ZERO);
+            // Создание ресторанов через DTO
+            RestaurantRequestDTO restaurant1 = new RestaurantRequestDTO(
+                    "Italiano pastanello",
+                    "italian kukaracha",
+                    CuisineType.ITALIAN,
+                    new BigDecimal("1500.00")
+            );
 
-            Restaurant restaurant2 = new Restaurant(null, "Doshiraki",
-                    "bla bla bla", CuisineType.CHINESE,
-                    new BigDecimal("1200.00"), BigDecimal.ZERO);
+            RestaurantRequestDTO restaurant2 = new RestaurantRequestDTO(
+                    "Doshiraki",
+                    "bla bla bla",
+                    CuisineType.CHINESE,
+                    new BigDecimal("1200.00")
+            );
 
-            Restaurant restaurant3 = new Restaurant(null, "Baget",
-                    "fransish", CuisineType.FRENCH,
-                    new BigDecimal("2500.00"), BigDecimal.ZERO);
+            RestaurantRequestDTO restaurant3 = new RestaurantRequestDTO(
+                    "Baget",
+                    "fransish",
+                    CuisineType.FRENCH,
+                    new BigDecimal("2500.00")
+            );
 
             restaurantService.save(restaurant1);
             restaurantService.save(restaurant2);
             restaurantService.save(restaurant3);
 
-            Review review1 = new Review(null, visitor1.getId(), restaurant1.getId(),
-                    5, "Vai vai vai");
-            Review review2 = new Review(null, visitor2.getId(), restaurant1.getId(),
-                    4, "555555");
-            Review review3 = new Review(null, visitor3.getId(), restaurant2.getId(),
-                    3, "Normal");
-            Review review4 = new Review(null, visitor1.getId(), restaurant2.getId(),
-                    5, "nyam nyam");
-            Review review5 = new Review(null, visitor2.getId(), restaurant3.getId(),
-                    5, "Prosto prelest");
-
-            reviewService.save(review1);
-            reviewService.save(review2);
-            reviewService.save(review3);
-            reviewService.save(review4);
-            reviewService.save(review5);
-
             // Тестирование и вывод результатов
-            System.out.println("TEST");
-
-            System.out.println("\nVisitors");
-            visitorService.findAll().forEach(System.out::println);
-
-            System.out.println("\nRestaurant");
-            restaurantService.findAll().forEach(restaurant ->
-                    System.out.println(restaurant.getName() + " - rating: " + restaurant.getRating()));
-
-            System.out.println("\nReviews");
-            reviewService.findAll().forEach(System.out::println);
+            System.out.println("Application started successfully!");
+            System.out.println("Swagger UI available at: http://localhost:8080/swagger-ui.html");
         };
     }
 }
