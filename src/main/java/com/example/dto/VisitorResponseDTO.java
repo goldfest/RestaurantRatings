@@ -1,4 +1,4 @@
-package com.example.dto.Visitor;
+package com.example.dto;
 
 public record VisitorResponseDTO(
         Long id,

@@ -1,4 +1,4 @@
-package com.example.dto.Restaurant;
+package com.example.dto;
 
 import com.example.entity.CuisineType;
 

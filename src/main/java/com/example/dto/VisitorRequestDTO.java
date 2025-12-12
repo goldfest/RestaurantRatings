@@ -1,4 +1,4 @@
-package com.example.dto.Visitor;
+package com.example.dto;
 
 import jakarta.validation.constraints.*;
 

@@ -1,7 +1,7 @@
 package com.example.mapper;
 
-import com.example.dto.Visitor.VisitorRequestDTO;
-import com.example.dto.Visitor.VisitorResponseDTO;
+import com.example.dto.VisitorRequestDTO;
+import com.example.dto.VisitorResponseDTO;
 import com.example.entity.Visitor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -1,12 +1,14 @@
 package com.example.controller;
 
-import com.example.dto.Review.ReviewRequestDTO;
-import com.example.dto.Review.ReviewResponseDTO;
+import com.example.dto.ReviewRequestDTO;
+import com.example.dto.ReviewResponseDTO;
 import com.example.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
-@Tag(name = "Отзывы", description = "Управление отзывами")
+@Tag(name = "Reviews", description = "Управление отзывами")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -35,42 +37,64 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/visitor/{visitorId}/restaurant/{restaurantId}")
     @Operation(summary = "Получить отзыв по айди")
-    public ResponseEntity<ReviewResponseDTO> getReviewById(@PathVariable Long id) {
-        ReviewResponseDTO review = reviewService.findById(id);
-        if (review != null) {
-            return ResponseEntity.ok(review);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<ReviewResponseDTO> getReview(
+            @PathVariable Long visitorId,
+            @PathVariable Long restaurantId) {
+        ReviewResponseDTO review = reviewService.findById(visitorId, restaurantId);
+        return ResponseEntity.ok(review);
     }
 
-    @GetMapping("/restaurant/{restaurantId}")
-    @Operation(summary = "Получить отзыв по айди ресторана")
-    public ResponseEntity<List<ReviewResponseDTO>> getReviewsByRestaurantId(@PathVariable Long restaurantId) {
-        List<ReviewResponseDTO> reviews = reviewService.findByRestaurantId(restaurantId);
+    @PutMapping("/visitor/{visitorId}/restaurant/{restaurantId}")
+    @Operation(summary = "Обновить отзыв по айди")
+    public ResponseEntity<ReviewResponseDTO> updateReview(
+            @PathVariable Long visitorId,
+            @PathVariable Long restaurantId,
+            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
+        ReviewResponseDTO updatedReview = reviewService.update(visitorId, restaurantId, reviewRequestDTO);
+        return ResponseEntity.ok(updatedReview);
+    }
+
+    @DeleteMapping("/visitor/{visitorId}/restaurant/{restaurantId}")
+    @Operation(summary = "Удалить отзыв по айди")
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable Long visitorId,
+            @PathVariable Long restaurantId) {
+        reviewService.delete(visitorId, restaurantId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Пагинация с сортировкой (Требование 2)
+    @GetMapping("/restaurant/{restaurantId}/page")
+    @Operation(summary = "Получить отзыв по айди ресторана с пагинацией")
+    public ResponseEntity<Page<ReviewResponseDTO>> getReviewsByRestaurantWithPagination(
+            @PathVariable Long restaurantId,
+            @Parameter(description = "Page number (0-based)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "Sort by field", example = "rating")
+            @RequestParam(defaultValue = "rating") String sortBy,
+            @Parameter(description = "Sort direction (asc/desc)", example = "asc")
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        Page<ReviewResponseDTO> reviews = reviewService.getReviewsByRestaurant(
+                restaurantId, page, size, sortBy, direction);
         return ResponseEntity.ok(reviews);
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Обновить отзыв по айди")
-    public ResponseEntity<ReviewResponseDTO> updateReview(
-            @PathVariable Long id,
-            @Valid @RequestBody ReviewRequestDTO reviewRequestDTO) {
-        ReviewResponseDTO updatedReview = reviewService.update(id, reviewRequestDTO);
-        if (updatedReview != null) {
-            return ResponseEntity.ok(updatedReview);
-        }
-        return ResponseEntity.notFound().build();
-    }
+    // Пагинация с сортировкой по рейтингу
+    @GetMapping("/restaurant/{restaurantId}/sorted")
+    @Operation(summary = "Получить отзывы с сортировкой по оценке")
+    public ResponseEntity<Page<ReviewResponseDTO>> getReviewsSortedByRating(
+            @PathVariable Long restaurantId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "true") boolean ascending) {
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить отзыв по айди")
-    public ResponseEntity<Void> deleteReview(@PathVariable Long id) {
-        boolean deleted = reviewService.remove(id);
-        if (deleted) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        Page<ReviewResponseDTO> reviews = reviewService.getReviewsByRestaurantSortedByRating(
+                restaurantId, page, size, ascending);
+        return ResponseEntity.ok(reviews);
     }
 }
