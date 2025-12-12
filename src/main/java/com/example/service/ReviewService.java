@@ -1,6 +1,9 @@
 package com.example.service;
 
+import com.example.dto.Review.ReviewRequestDTO;
+import com.example.dto.Review.ReviewResponseDTO;
 import com.example.entity.Review;
+import com.example.mapper.ReviewMapper;
 import com.example.repository.RestaurantRepository;
 import com.example.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +19,25 @@ import java.util.Optional;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final RestaurantRepository restaurantRepository;
+    private final ReviewMapper reviewMapper;
 
-    public Review save(Review review) {
+    public ReviewResponseDTO save(ReviewRequestDTO reviewRequestDTO) {
+        Review review = reviewMapper.toEntity(reviewRequestDTO);
         Review savedReview = reviewRepository.save(review);
         if (savedReview != null) {
             updateRestaurantRating(review.getRestaurantId());
         }
-        return savedReview;
+        return reviewMapper.toResponseDTO(savedReview);
+    }
+
+    public ReviewResponseDTO update(Long id, ReviewRequestDTO reviewRequestDTO) {
+        Review review = reviewMapper.toEntity(reviewRequestDTO);
+        review.setId(id);
+        Review updatedReview = reviewRepository.save(review);
+        if (updatedReview != null) {
+            updateRestaurantRating(review.getRestaurantId());
+        }
+        return reviewMapper.toResponseDTO(updatedReview);
     }
 
     public boolean remove(Long id) {
@@ -38,8 +53,22 @@ public class ReviewService {
         return false;
     }
 
-    public List<Review> findAll() {
-        return reviewRepository.findAll();
+    public List<ReviewResponseDTO> findAll() {
+        return reviewRepository.findAll().stream()
+                .map(reviewMapper::toResponseDTO)
+                .toList();
+    }
+
+    public ReviewResponseDTO findById(Long id) {
+        return reviewRepository.findById(id)
+                .map(reviewMapper::toResponseDTO)
+                .orElse(null);
+    }
+
+    public List<ReviewResponseDTO> findByRestaurantId(Long restaurantId) {
+        return reviewRepository.findByRestaurantId(restaurantId).stream()
+                .map(reviewMapper::toResponseDTO)
+                .toList();
     }
 
     private void updateRestaurantRating(Long restaurantId) {
