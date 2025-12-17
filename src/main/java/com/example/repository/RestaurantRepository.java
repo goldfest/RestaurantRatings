@@ -1,45 +1,23 @@
 package com.example.repository;
 
 import com.example.entity.Restaurant;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
-public class RestaurantRepository {
-    private final List<Restaurant> restaurants = new ArrayList<>();
-    private final AtomicLong idCounter = new AtomicLong(1);
+public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
 
-    public Restaurant save(Restaurant restaurant) {
-        if (restaurant.getId() == null) {
-            restaurant.setId(idCounter.getAndIncrement());
-            restaurants.add(restaurant);
-            return restaurant;
-        } else {
-            Optional<Restaurant> existingRestaurant = findById(restaurant.getId());
-            if (existingRestaurant.isPresent()) {
-                restaurants.remove(existingRestaurant.get());
-                restaurants.add(restaurant);
-                return restaurant;
-            }
-            return null;
-        }
-    }
+    //способ 1: через конвенцию имени метода
+    List<Restaurant> findByRatingGreaterThanEqual(BigDecimal minRating);
 
-    public boolean remove(Long id) {
-        return restaurants.removeIf(restaurant -> restaurant.getId().equals(id));
-    }
+    //способ 2: через @Query с JPQL
+    @Query("SELECT r FROM Restaurant r WHERE r.rating >= :minRating ORDER BY r.rating DESC")
+    List<Restaurant> findRestaurantsWithMinRating(@Param("minRating") BigDecimal minRating);
 
-    public List<Restaurant> findAll() {
-        return new ArrayList<>(restaurants);
-    }
-
-    public Optional<Restaurant> findById(Long id) {
-        return restaurants.stream()
-                .filter(restaurant -> restaurant.getId().equals(id))
-                .findFirst();
-    }
+    List<Restaurant> findByCuisineType(String cuisineType);
 }

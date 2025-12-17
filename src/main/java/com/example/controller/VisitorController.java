@@ -1,7 +1,7 @@
 package com.example.controller;
 
-import com.example.dto.Visitor.VisitorRequestDTO;
-import com.example.dto.Visitor.VisitorResponseDTO;
+import com.example.dto.VisitorRequestDTO;
+import com.example.dto.VisitorResponseDTO;
 import com.example.service.VisitorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,7 +60,7 @@ public class VisitorController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить посетителя по айди")
     public ResponseEntity<Void> deleteVisitor(@PathVariable Long id) {
-        boolean deleted = visitorService.remove(id);
+        boolean deleted = visitorService.delete(id);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }

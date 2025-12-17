@@ -1,9 +1,10 @@
-package com.example.dto.Review;
+package com.example.dto;
+
+import java.io.Serializable;
 
 public record ReviewResponseDTO(
-        Long id,
         Long visitorId,
         Long restaurantId,
         Integer rating,
         String reviewText
-) {}
+) implements Serializable {}

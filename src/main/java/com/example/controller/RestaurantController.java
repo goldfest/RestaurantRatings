@@ -1,9 +1,10 @@
 package com.example.controller;
 
-import com.example.dto.Restaurant.RestaurantRequestDTO;
-import com.example.dto.Restaurant.RestaurantResponseDTO;
+import com.example.dto.RestaurantRequestDTO;
+import com.example.dto.RestaurantResponseDTO;
 import com.example.service.RestaurantService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -60,10 +62,30 @@ public class RestaurantController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить ресторанчик по его айди")
     public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
-        boolean deleted = restaurantService.remove(id);
+        boolean deleted = restaurantService.delete(id);
         if (deleted) {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/search/min-rating")
+    @Operation(summary = "Найти ресторан с минимальным рейтингом")
+    public ResponseEntity<List<RestaurantResponseDTO>> findRestaurantsWithMinRating(
+            @Parameter(description = "Minimum rating", example = "4.0")
+            @RequestParam BigDecimal minRating) {
+
+        List<RestaurantResponseDTO> restaurants = restaurantService.findRestaurantsWithMinRating(minRating);
+        return ResponseEntity.ok(restaurants);
+    }
+
+    @GetMapping("/search/min-rating-jpql")
+    @Operation(summary = "Найти ресторан с минимальным рейтингом с помощью JPQL")
+    public ResponseEntity<List<RestaurantResponseDTO>> findRestaurantsWithMinRatingJpql(
+            @Parameter(description = "Minimum rating", example = "4.0")
+            @RequestParam BigDecimal minRating) {
+
+        List<RestaurantResponseDTO> restaurants = restaurantService.findRestaurantsWithMinRatingJpql(minRating);
+        return ResponseEntity.ok(restaurants);
     }
 }

@@ -1,51 +1,40 @@
 package com.example.repository;
 
 import com.example.entity.Review;
+import com.example.entity.ReviewId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
-public class ReviewRepository {
-    private final List<Review> reviews = new ArrayList<>();
-    private final AtomicLong idCounter = new AtomicLong(1);
+public interface ReviewRepository extends JpaRepository<Review, ReviewId> {
 
-    public Review save(Review review) {
-        if (review.getId() == null) {
-            review.setId(idCounter.getAndIncrement());
-            reviews.add(review);
-            return review;
-        } else {
-            Optional<Review> existingReview = findById(review.getId());
-            if (existingReview.isPresent()) {
-                reviews.remove(existingReview.get());
-                reviews.add(review);
-                return review;
-            }
-            return null;
-        }
-    }
+    //найти все отзывы по ресторану с пагинацией
+    Page<Review> findByRestaurantId(Long restaurantId, Pageable pageable);
 
-    public boolean remove(Long id) {
-        return reviews.removeIf(review -> review.getId().equals(id));
-    }
+    //найти все отзывы посетителя
+    List<Review> findByVisitorId(Long visitorId);
 
-    public List<Review> findAll() {
-        return new ArrayList<>(reviews);
-    }
+    //проверить, существует ли отзыв от пользователя для ресторана
+    boolean existsByVisitorIdAndRestaurantId(Long visitorId, Long restaurantId);
 
-    public Optional<Review> findById(Long id) {
-        return reviews.stream()
-                .filter(review -> review.getId().equals(id))
-                .findFirst();
-    }
+    //найти отзыв по посетителю и ресторану
+    Optional<Review> findByVisitorIdAndRestaurantId(Long visitorId, Long restaurantId);
 
-    public List<Review> findByRestaurantId(Long restaurantId) {
-        return reviews.stream()
-                .filter(review -> review.getRestaurantId().equals(restaurantId))
-                .toList();
-    }
+    //получение отзывов с сортировкой
+    @Query("SELECT r FROM Review r WHERE r.restaurant.id = :restaurantId ORDER BY r.rating ASC")
+    Page<Review> findReviewsByRestaurantSortedByRatingAsc(
+            @Param("restaurantId") Long restaurantId,
+            Pageable pageable);
+
+    @Query("SELECT r FROM Review r WHERE r.restaurant.id = :restaurantId ORDER BY r.rating DESC")
+    Page<Review> findReviewsByRestaurantSortedByRatingDesc(
+            @Param("restaurantId") Long restaurantId,
+            Pageable pageable);
 }
